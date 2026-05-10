@@ -1,0 +1,693 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECET 2024 – Computer Science & Engineering | Mock Test</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252a38;
+    --accent: #4f8ef7;
+    --accent2: #7c5cfc;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  /* ── START SCREEN ── */
+  #start-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem; text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #1a2440 0%, var(--bg) 70%);
+  }
+  #start-screen h1 { font-size: clamp(1.8rem,4vw,3rem); font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; margin-bottom: .5rem; }
+  #start-screen .subtitle { color: var(--muted); font-size: .95rem; margin-bottom: 2.5rem; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+    gap: 1rem; max-width: 600px; width: 100%; margin-bottom: 2.5rem; }
+  .info-card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem; }
+  .info-card .val { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+  .info-card .lbl { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+  .start-btn { background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 10px; padding: .9rem 2.5rem;
+    font-size: 1rem; font-weight: 600; font-family: var(--sans); cursor: pointer;
+    transition: opacity .2s, transform .2s; }
+  .start-btn:hover { opacity: .9; transform: translateY(-1px); }
+
+  /* ── TEST SCREEN ── */
+  #test-screen { display: none; }
+  .test-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,15,20,.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.5rem; gap: 1rem;
+  }
+  .timer-box { display: flex; align-items: center; gap: .5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: .4rem .9rem; }
+  .timer-box .t-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  #timer { font-family: var(--mono); font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+  #timer.warn { color: var(--yellow); }
+  #timer.danger { color: var(--red); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .progress-bar-wrap { flex: 1; background: var(--surface); border-radius: 999px; height: 6px; max-width: 300px; }
+  .progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,var(--accent),var(--accent2)); transition: width .3s; }
+  .progress-label { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+  .submit-btn { background: var(--green); color: #fff; border: none; border-radius: 8px;
+    padding: .5rem 1.2rem; font-size: .85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+  .submit-btn:hover { opacity: .85; }
+
+  /* ── MAIN LAYOUT ── */
+  .test-body { display: flex; min-height: calc(100vh - 57px); }
+  .question-panel { flex: 1; padding: 2rem 2.5rem; max-width: 800px; }
+  .sidebar { width: 240px; border-left: 1px solid var(--border); padding: 1.2rem;
+    background: var(--surface); overflow-y: auto; position: sticky; top: 57px;
+    height: calc(100vh - 57px); }
+
+  /* section tab */
+  .section-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .sec-tab { background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: .35rem .75rem; font-size: .75rem; cursor: pointer; font-family: var(--sans); }
+  .sec-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* question card */
+  .q-num { font-size: .7rem; font-family: var(--mono); color: var(--muted); margin-bottom: .5rem; }
+  .q-section-badge { display: inline-block; font-size: .65rem; font-family: var(--mono);
+    border: 1px solid var(--border); border-radius: 4px; padding: .1rem .45rem;
+    color: var(--muted); margin-bottom: .8rem; }
+  .q-text { font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem; color: var(--text); }
+  .options { display: flex; flex-direction: column; gap: .75rem; }
+  .option {
+    display: flex; align-items: flex-start; gap: .9rem;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: .85rem 1rem; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .option:hover { border-color: var(--accent); background: rgba(79,142,247,.07); }
+  .option.selected { border-color: var(--accent); background: rgba(79,142,247,.12); }
+  .opt-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    font-size: .65rem; font-family: var(--mono); color: var(--muted); transition: all .15s; }
+  .option.selected .opt-circle { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .opt-text { font-size: .9rem; line-height: 1.5; }
+
+  /* navigation */
+  .q-nav { display: flex; gap: .75rem; margin-top: 2rem; align-items: center; flex-wrap: wrap; }
+  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: .55rem 1.2rem; font-size: .85rem; font-family: var(--sans);
+    cursor: pointer; transition: all .15s; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav-btn:disabled { opacity: .35; cursor: default; }
+  .q-nav .spacer { flex: 1; }
+
+  /* sidebar grid */
+  .sidebar h4 { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin-bottom: .75rem; font-family: var(--mono); }
+  .grid-btns { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-bottom: 1rem; }
+  .grid-btn { aspect-ratio: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 5px; font-size: .7rem; font-family: var(--mono); color: var(--muted);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .grid-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .grid-btn.answered { background: rgba(34,197,94,.15); border-color: var(--green); color: var(--green); }
+  .grid-btn.current { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 2px rgba(79,142,247,.3); }
+  .legend { display: flex; flex-direction: column; gap: .4rem; margin-top: 1rem; }
+  .legend-row { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── RESULT SCREEN ── */
+  #result-screen { display: none; padding: 2rem; max-width: 900px; margin: 0 auto; }
+  .result-hero { text-align: center; padding: 3rem 1rem 2rem; }
+  .result-hero .score-ring { width: 140px; height: 140px; border-radius: 50%;
+    background: conic-gradient(var(--accent) calc(var(--pct)*3.6deg), var(--surface2) 0);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
+    font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--accent);
+    position: relative; }
+  .result-hero .score-ring::before { content: ''; position: absolute; inset: 10px;
+    background: var(--bg); border-radius: 50%; }
+  .result-hero .score-ring span { position: relative; z-index: 1; }
+  .result-hero h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: .5rem; }
+  .result-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr));
+    gap: 1rem; margin-bottom: 2rem; }
+  .r-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem; text-align: center; }
+  .r-stat .val { font-size: 1.6rem; font-weight: 700; font-family: var(--mono); }
+  .r-stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+  .r-stat.correct .val { color: var(--green); }
+  .r-stat.wrong .val { color: var(--red); }
+  .r-stat.skip .val { color: var(--yellow); }
+
+  /* answer review */
+  .review-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; }
+  .review-header h3 { font-size: 1rem; font-weight: 600; }
+  .filter-tabs { display: flex; gap: .4rem; }
+  .f-tab { background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: .3rem .7rem; font-size: .72rem; cursor: pointer; font-family: var(--sans); }
+  .f-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .review-list { display: flex; flex-direction: column; gap: 1rem; }
+  .r-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.1rem 1.2rem; }
+  .r-item.correct { border-left: 3px solid var(--green); }
+  .r-item.wrong { border-left: 3px solid var(--red); }
+  .r-item.skip { border-left: 3px solid var(--yellow); }
+  .r-item-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .6rem; gap: 1rem; }
+  .r-item-num { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+  .r-badge { font-size: .65rem; font-weight: 600; border-radius: 4px; padding: .15rem .45rem; }
+  .r-badge.correct { background: rgba(34,197,94,.15); color: var(--green); }
+  .r-badge.wrong { background: rgba(239,68,68,.15); color: var(--red); }
+  .r-badge.skip { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .r-item-q { font-size: .88rem; line-height: 1.6; margin-bottom: .7rem; }
+  .r-ans { font-size: .8rem; display: flex; flex-direction: column; gap: .3rem; }
+  .r-ans span { color: var(--muted); }
+  .r-ans .your-ans { color: var(--red); }
+  .r-ans .correct-ans { color: var(--green); }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .question-panel { padding: 1.2rem; }
+    .test-header { flex-wrap: wrap; }
+    .progress-bar-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ──────────────── START SCREEN ──────────────── -->
+<div id="start-screen">
+  <h1>TG ECET 2024 - COMPUTER SCIENCE AND ENGINEERING</h1>
+  <p class="subtitle">Telangana State – Computer Science &amp; Engineering | 06 May 2024 Shift 1</p>
+  <div class="info-grid">
+    <div class="info-card"><div class="val">200</div><div class="lbl">Questions</div></div>
+    <div class="info-card"><div class="val">200</div><div class="lbl">Total Marks</div></div>
+    <div class="info-card"><div class="val">180</div><div class="lbl">Minutes</div></div>
+    <div class="info-card"><div class="val">0</div><div class="lbl">Negative Marks</div></div>
+  </div>
+  <div class="info-grid" style="max-width:600px">
+    <div class="info-card"><div class="val" style="font-size:1rem">Maths</div><div class="lbl">50 Questions</div></div>
+    <div class="info-card"><div class="val" style="font-size:1rem">Physics</div><div class="lbl">25 Questions</div></div>
+    <div class="info-card"><div class="val" style="font-size:1rem">Chemistry</div><div class="lbl">25 Questions</div></div>
+    <div class="info-card"><div class="val" style="font-size:1rem">CSE</div><div class="lbl">100 Questions</div></div>
+  </div>
+  <button class="start-btn" onclick="startTest()">Start Test →</button>
+</div>
+
+<!-- ──────────────── TEST SCREEN ──────────────── -->
+<div id="test-screen">
+  <header class="test-header">
+    <div class="timer-box">
+      <div><div class="t-label">Time Left</div><div id="timer">03:00:00</div></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <span class="progress-label" id="progress-label">0 / 200 answered</span>
+    <button class="submit-btn" onclick="confirmSubmit()">Submit Test</button>
+  </header>
+
+  <div class="test-body">
+    <div class="question-panel">
+      <div class="section-tabs" id="sec-tabs"></div>
+      <div class="q-num" id="q-num"></div>
+      <div class="q-section-badge" id="q-badge"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div class="q-nav">
+        <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">← Previous</button>
+        <span class="spacer"></span>
+        <button class="nav-btn primary" id="next-btn" onclick="navigate(1)">Next →</button>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <h4>Question Map</h4>
+      <div class="grid-btns" id="grid-btns"></div>
+      <div class="legend">
+        <div class="legend-row"><div class="legend-dot" style="background:var(--green)"></div>Answered</div>
+        <div class="legend-row"><div class="legend-dot" style="background:var(--surface2);border:1px solid var(--border)"></div>Not Answered</div>
+        <div class="legend-row"><div class="legend-dot" style="background:var(--accent)"></div>Current</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ──────────────── RESULT SCREEN ──────────────── -->
+<div id="result-screen">
+  <div class="result-hero">
+    <div class="score-ring" id="score-ring"><span id="score-pct-txt"></span></div>
+    <h2 id="result-title"></h2>
+    <p style="color:var(--muted);font-size:.9rem" id="result-sub"></p>
+  </div>
+  <div class="result-stats" id="result-stats"></div>
+  <div class="review-header">
+    <h3>Answer Review</h3>
+    <div class="filter-tabs">
+      <button class="f-tab active" onclick="filterReview('all',this)">All</button>
+      <button class="f-tab" onclick="filterReview('correct',this)">Correct</button>
+      <button class="f-tab" onclick="filterReview('wrong',this)">Wrong</button>
+      <button class="f-tab" onclick="filterReview('skip',this)">Skipped</button>
+    </div>
+  </div>
+  <div class="review-list" id="review-list"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  QUESTION DATA (all 200 questions hardcoded)
+// ═══════════════════════════════════════════════════
+const QUESTIONS = [
+// ── MATHEMATICS (Q1-50) ──────────────────────────
+{s:"Mathematics",q:"If A = [[k, 1],[1, k]] and |A³| = 27, then k =",o:["±1","±2","±4","±5"],a:1},
+{s:"Mathematics",q:"If A = [[1, -1],[2, 1]] satisfies aA² + bA + cI = 0, then b + 2c =",o:["4","2","−4","3"],a:0},
+{s:"Mathematics",q:"Let (x, y, z) be the solution of the system of equations x + 3y + z = 3, x + 4y + 2z = 3, −x − 2y + 3z = −6. Then x² + y² + z² =",o:["12","9","6","3"],a:3},
+{s:"Mathematics",q:"If A = [[2, x+9],[1, 2x]] is invertible, then x ≠",o:["4","1","3","5"],a:2},
+{s:"Mathematics",q:"The value of x satisfying 3^(log₅(x−5)) = log₅(125) is",o:["10","5","9","3"],a:0},
+{s:"Mathematics",q:"If (4x²+1)/(x³−1) = A/(x−1) + (Bx+C)/(x²+x+1), then A − B + C =",o:["−3","0","2","1"],a:1},
+{s:"Mathematics",q:"The diameter of the circle (x−1)² + (y+3)² = 3 is",o:["√3","4√3","2√3","3"],a:2},
+{s:"Mathematics",q:"If the circle x² + y² − 3x − 2y + c = 0 passes through origin, then c =",o:["−1","1","0","∞"],a:2},
+{s:"Mathematics",q:"The latus rectum of parabola x² = 4y is",o:["4","8","12","2"],a:0},
+{s:"Mathematics",q:"The centre of the circle 45x² + 45y² − 60x + 36y + 19 = 0 is",o:["(0,0)","(60,36)","(−60,36)","(2/3, −2/5)"],a:3},
+{s:"Mathematics",q:"Homogeneous second degree equation ax² + 2hxy + by² = 0 represents two real and distinct lines through origin if",o:["h² > ab","h² = ab","h² < ab","h² = a+b"],a:0},
+{s:"Mathematics",q:"The equation of the circle with extremities (1,3) and (5,7) of the diameter is",o:["x²+y²+6x+10y+26=0","x²+y²−6x−10y+26=0","x²+y²−6x+10y+26=0","x²+y²−6x−10y−26=0"],a:1},
+{s:"Mathematics",q:"If the line passing through the points (a,6a) and (5,6) is perpendicular to the line 3x+4y+5=0, then 7a =",o:["−5","−3","−1","−2"],a:2},
+{s:"Mathematics",q:"If (0, k), (1, 3) and (82, 30) are collinear, then k =",o:["8/3","9/4","10/7","11/6"],a:0},
+{s:"Mathematics",q:"If the two parallel sides of a square are 2x+y+7=0 and 2x+y+5=0, then the area of that square (in square units) is",o:["3/5","4/5","6/5","7/5"],a:1},
+{s:"Mathematics",q:"The point at which two circles x²+y²−4x−2y−4=0, x²+y²−12x−8y−12=0 touches is",o:["(−2/5, −4/5)","(2/5, 4/5)","(2/5, −4/5)","(−2/5, 4/5)"],a:0},
+{s:"Mathematics",q:"If x+y=k is a normal to the parabola y²=12x, then k =",o:["5","9","7","3"],a:1},
+{s:"Mathematics",q:"The set of all points where the function f(x) = x|x| is differentiable is",o:["(0,∞)","(−∞,∞)","(−∞,0)∪(0,∞)","(−∞,0)"],a:1},
+{s:"Mathematics",q:"lim(x→1) (1+x+x²+...+xⁿ⁻¹−n)/(x−1) =",o:["n²+n","(n²+n)/2","(n²−n)/2","n²−n"],a:2},
+{s:"Mathematics",q:"If x=2cost, y=2sint, then d²y/dx² at t=π/4 is",o:["1/√2","−√2","√3","−1/√3"],a:1},
+{s:"Mathematics",q:"The equation of the tangent to the curve y = x³ − 3x + 2 at the point (2,4) is",o:["9x−y−14=0","9x+y−14=0","9x−y+14=0","9x+y=0"],a:0},
+{s:"Mathematics",q:"If y = a log x + bx² + x has its extreme values at x = −1 and x = 2, then the values of a and b are respectively",o:["−2, 2","−4, 4","−1/3, 4","−1/2, 2"],a:3},
+{s:"Mathematics",q:"If the curves y² = 2x and 2xy = k cut at right angles, then k² =",o:["4","8","16","9"],a:1},
+{s:"Mathematics",q:"If x^y · y^x = 1, then dy/dx =",o:["−(y/x)·(x+y log x)/(y+x log y)","(y/x)·(x−log x)/(y+log y)","(y/x)·(y−x log y)/(x+y log x)","−(y/x)·(y+x log y)/(x+y log x)"],a:3},
+{s:"Mathematics",q:"If u = tan⁻¹((x³+y³)/(x−y)), x≠y and x(∂u/∂x)+y(∂u/∂y)−sin ku=0, then k =",o:["3","4","2","5"],a:2},
+{s:"Mathematics",q:"The slope of the tangent to the curve xy=1 at (1,1) is",o:["−2","−1","1","2"],a:1},
+{s:"Mathematics",q:"The function f(x) = xe⁻ˣ (x∈R) attains a maximum value at x =",o:["2","1/e","1","3"],a:2},
+{s:"Mathematics",q:"The integral value of ∫(cos2x)/(sin²x·cos²x) dx =",o:["cosec²x − sec²x + c","cotx + tanx + c","−cotx − tanx + c","cosecx − secx + c"],a:2},
+{s:"Mathematics",q:"∫e^(x cosecx) cosecx(1 − x cotx) dx =",o:["e^(x cotx)+c","e^(x cosecx)+c","e^(−x cotx)+c","e^(−x cosecx)+c"],a:1},
+{s:"Mathematics",q:"The integral value of ∫₀^π x sin x cos⁴x dx is",o:["π/10","π/5","−π/5","−π/10"],a:1},
+{s:"Mathematics",q:"The area enclosed between the curves y² = x and y = |x| is",o:["1/3","1","2/3","1/6"],a:3},
+{s:"Mathematics",q:"The differential equation of the family of curves xy = c₁eˣ + c₂e⁻ˣ is",o:["d²y/dx²−2(dy/dx)−y=0","x(d²y/dx²)+2(dy/dx)−xy=0","x(d²y/dx²)−2(dy/dx)−y=0","x²(d²y/dx²)+2(dy/dx)−y=0"],a:1},
+{s:"Mathematics",q:"The general solution of the differential equation dy/dx − x tan(y−x) = 1 is",o:["sin(y−x)=ce^(x²/2)","cos(y−x)=ce^(−x²/2)","sin(y+x)=ce^(−x²/2)","tan(y−x)=ce^(x²/2)"],a:0},
+{s:"Mathematics",q:"The general solution of the differential equation xy(dy/dx) = (1+y²)/(1+x²) is",o:["(1+x)(1+y)=cx²y²","(1+x²)(1+y²)=cx²","(1+x²)(1+y²)=cy","(1+x²)(1+y²)=cxy"],a:1},
+{s:"Mathematics",q:"The general solution of the differential equation dy/dx − (2/x)y = 2x³+x is",o:["y=x⁴+x²logx+cx²","y=x³+x²logx+cx²","y=x³+xlogx+cx²","y=x²+xlogx+cx³"],a:0},
+{s:"Mathematics",q:"The general solution of the differential equation sec²y(dy/dx) + x tany = x³ is",o:["siny=x²+2+ce^(−x²/2)","cosy=2x²−1+ce^(−x²/2)","coty=x²−2+ce^(−x²/2)","tany=x²−2+ce^(−x²/2)"],a:3},
+{s:"Mathematics",q:"The particular integral of the differential equation d²y/dx² + 16y = e^(−3x) + cos4x is",o:["(1/7)e^(−3x)+(x/8)cos4x","(1/23)e^(−3x)+(x/8)cos4x","(1/25)e^(−3x)+(x/8)sin4x","(1/36)e^(−3x)+(x/9)sin4x"],a:2},
+{s:"Mathematics",q:"A particular integral of the differential equation d²y/dx² + dy/dx + y = x² is",o:["x²+4x","2x²−x","x²−8x","x²−2x"],a:3},
+{s:"Mathematics",q:"The solution of the differential equation d²y/dx²−2(dy/dx)−15y=0 subject to the conditions y′(0)=0, y″(0)=2 is",o:["y=(1/20)e^(3x)+(1/12)e^(5x)","y=(1/20)e^(5x)+(1/12)e^(−3x)","y=(1/12)e^(5x)+(1/20)e^(−3x)","y=(1/20)e^(−5x)+(1/12)e^(−3x)"],a:1},
+{s:"Mathematics",q:"L{∫₀ᵗ e^(−u) sin u du} =",o:["1/(s²+2s+2)","s/(s²+2s+2)","1/(s(s²+2s+2))","1/(s(s²+2))"],a:2},
+{s:"Mathematics",q:"If L{f(t)} = log((s−1)/s), then f(1) =",o:["1−e","e−1","e","e+1"],a:0},
+{s:"Mathematics",q:"∫₀^∞ (sin2t/t) dt =",o:["π","0","2π","π/2"],a:3},
+{s:"Mathematics",q:"If L{t sinh kt} = 4s/(s²−4)², then k =",o:["1","4","2","1/2"],a:2},
+{s:"Mathematics",q:"Let L⁻¹{e^(−s)/(s²+4s+5)} = f(t). If t>1, then f(t) =",o:["e^(−2t) sint","e^(−2(t−1)) sin(t−1)","e^(−2(t+1)) sin(t+1)","e^(2t) sint"],a:1},
+{s:"Mathematics",q:"If L{f(t)} = 2(s−1)/((s+1)(s−2)), then L{f(4t)} =",o:["2(s+2)/((s−4)(s+8))","2(s−1)/((4s+1)(4s−2))","(s−2)/((s−4)(s+8))","2(s−2)/((s+4)(s−8))"],a:3},
+{s:"Mathematics",q:"If Y(s) is the Laplace transform of the solution y(t) of y″+y=sin3t, y(0)=0, y′(0)=0, then Y(0)=",o:["0","3","1/3","1/9"],a:2},
+{s:"Mathematics",q:"The value of the Fourier coefficient aₙ in the series expansion of f(x)=|x| in (−π,π) when n is odd is",o:["4/(πn²)","−4/(πn²)","2/(πn²)","0"],a:1},
+{s:"Mathematics",q:"The value of the Fourier coefficient b₀ in the series expansion of f(x)=|x sinx| in (−π,π) is",o:["0","−2","2","−1"],a:0},
+{s:"Mathematics",q:"If f(x)=sinx is expressed as Fourier Cosine series in the interval (0,π), then the value of a₀ is",o:["2/π","1/π","4/π","−2/π"],a:2},
+{s:"Mathematics",q:"∫₀^π sin6x sin4x dx =",o:["π/2","π","1","0"],a:3},
+
+// ── PHYSICS (Q51-75) ─────────────────────────────
+{s:"Physics",q:"Which one of the following equation is dimensionally incorrect for the expression representing displacement 'y' and amplitude 'A' of a particle executing Simple Harmonic Motion with time period 'T'?",o:["y = (A/√2)(Sinωt + Cosωt)","y = A Sinωt","y = (A/T) Sin(t/A)","y = A Sin(4πt/T)"],a:2},
+{s:"Physics",q:"The resultant of two equal forces acting at right angles to each other is 1224 N. Then the magnitude of each force in Newtons.",o:["612, 612","1224, 1224","865, 865","432, 432"],a:2},
+{s:"Physics",q:"The magnitude of three vectors A, B & C are in order 12, 5, 13 units and A + B = C, then what will be the angle between the vectors A & B",o:["90°","60°","30°","45°"],a:0},
+{s:"Physics",q:"A boy pulls a body of mass 50 kg resting on a flat horizontal surface. Calculate the frictional force if the coefficient of friction is 0.2",o:["98.1 kg.m.s⁻²","15 kg","98.1 × 10³ g.cm.s⁻²","1500 g"],a:0},
+{s:"Physics",q:"If a projectile is thrown with a velocity u at an angle of θ with the horizontal, then the velocity at maximum height during the projectile motion will be:",o:["2u sinθ","u sinθ","2u cosθ","u cosθ"],a:3},
+{s:"Physics",q:"A child of mass 5 kg is going round a merry-go-round that makes 1 rotation in 3.14 seconds. If the radius of the merry-go-round is 2 m then the centrifugal force on the child will be",o:["10 Newton","20 Newton","30 Newton","40 Newton"],a:3},
+{s:"Physics",q:"A metal plate of area 100 cm² is placed on the surface of a liquid and a force of 1μN is required to move the plate so as to produce a velocity change 1 cms⁻¹ between two successive layers separated by 1 cm. The coefficient of viscosity of the liquid is",o:["10⁻⁴ Pa s","10⁻³ Pa s","10⁻¹ Pa s","10 Pa s"],a:0},
+{s:"Physics",q:"Water rises to a height 'h' in a capillary tube of radius 'r' when immersed in water. The mass of the water in the capillary tube is 'm'. The mass of water that will rise in another capillary tube of radius r/2 when immersed in water is",o:["m","2m","m/2","4m"],a:2},
+{s:"Physics",q:"The continuity equation for compressible fluid is (the quantities carry their usual meaning)",o:["ρ₂A₁v₁ = ρ₁A₂v₂","A₁v₁ = A₂v₂","ρ₁v₁ = ρ₂v₂","ρ₁A₁v₁ = ρ₂A₂v₂"],a:3},
+{s:"Physics",q:"A block of mass 'm' is moving on frictionless horizontal surface with velocity 5m/sec, compresses an ideal spring by 2m and comes to rest. The ratio of mass 'm' of the block to spring constant 'k' is.",o:["25:4","4:25","1:25","4:1"],a:1},
+{s:"Physics",q:"Match the following: a) Adiabatic Process i) no volume change, b) Isochoric Process ii) no pressure change, c) Isobaric Process iii) no temperature change, d) Isothermal Process iv) no heat transfer",o:["a-iv, b-iii, c-ii, d-i","a-i, b-iv, c-ii, d-iii","a-iv, b-i, c-ii, d-iii","a-i, b-ii, c-iii, d-iv"],a:2},
+{s:"Physics",q:"First law of thermodynamics represents conservation of",o:["Pressure","Momentum","Entropy","Energy"],a:3},
+{s:"Physics",q:"The displacement of a particle executing Simple Harmonic Motion is given by x = a Cos(πt/2) where 'x' and 'a' are in metre. The distance covered by it in the time interval between t=0 sec to t=4 sec in metre is",o:["0","2a","4a","3a"],a:2},
+{s:"Physics",q:"A simple pendulum 80 cm long oscillates with amplitude of 0.02 m. The acceleration at the ends of its path is (take g = 10 ms⁻²)",o:["0 ms⁻²","0.25 ms⁻²","2.5 ms⁻²","10 ms⁻²"],a:1},
+{s:"Physics",q:"A particle undergoing Simple Harmonic Motion passes through the mean position with a velocity of 2 ms⁻¹. The velocity of the particle at the point where its displacement is half the amplitude is",o:["2√3 ms⁻¹","4√3 ms⁻¹","0 ms⁻¹","√3 ms⁻¹"],a:3},
+{s:"Physics",q:"A boy standing between two parallel walls fires a gun. He hears the first echo after 4 sec and next after 6 sec. The distance between the two walls is (take velocity of sound in air as 340 m/s)",o:["680 m","1020 m","1700 m","340 m"],a:2},
+{s:"Physics",q:"In a good acoustic hall the distribution of sound should be",o:["Gradually increasing","Exponentially increasing","Randomly change","Uniform"],a:3},
+{s:"Physics",q:"Two magnetic poles placed 5cm apart in air attract each other with a force of 100 dyne. How far from each other should they be placed to get the force of attraction 25 dyne?",o:["10 cm","4 cm","2 cm","6 cm"],a:0},
+{s:"Physics",q:"In a Wheatstone bridge, the four arms have each a resistance of 50 ohm. The galvanometer current is:",o:["0.05 A","0.5 A","0 A","5 A"],a:2},
+{s:"Physics",q:"In a transformer, the number of turns in secondary and primary coils are 50 and 200 respectively. If 4 A of current is flowing through the primary, the current flowing through the secondary coil is",o:["1 A","2 A","3 A","4 A"],a:0},
+{s:"Physics",q:"Electrons are ejected when a photosensitive material is illuminated by violet light but not by blue light. Would electrons come out from the same material when it is illuminated by red light?",o:["Yes","No","Yes, if intensity of incident light is increased","Yes, if material is illuminated for a long time"],a:1},
+{s:"Physics",q:"Optical fibres are electrically",o:["Conductors","Superconductors","Semiconductors","Insulators"],a:3},
+{s:"Physics",q:"In superconducting state the material behaves as",o:["Perfect diamagnetic","Weak diamagnetic","Perfect ferromagnetic","Weak paramagnetic"],a:0},
+{s:"Physics",q:"In semiconductors at room temperature",o:["The conduction band is completely empty","The valence band is partially empty and the conduction band is partially filled","The valence band is completely filled and the conduction band is partially filled","The valence band is completely filled"],a:1},
+{s:"Physics",q:"Semiconductors are doped",o:["To increase the resistivity","To get the desired level of conductivity","To reduce the conductivity","To get the positive temperature coefficient of resistance"],a:1},
+
+// ── CHEMISTRY (Q76-100) ──────────────────────────
+{s:"Chemistry",q:"Number of neutrons present in an element with atomic number 19 and mass number 39.",o:["19","58","39","20"],a:3},
+{s:"Chemistry",q:"The dative bond is present in",o:["Ammonia","Ammonium ion","Urea","Nitrogen"],a:1},
+{s:"Chemistry",q:"Which of the following molecules contains coordinate covalent bond?",o:["NH₂⁻","N₂H₄","H₃O⁺","H₂O₂"],a:2},
+{s:"Chemistry",q:"Concentrated hydrochloric acid contains 37% (by mass) HCl. The density of its solution is 1.18 g/mL. The molarity of HCl is",o:["12.0","16.03","6.0","1.20"],a:0},
+{s:"Chemistry",q:"A colloidal solution can be purified by the method of",o:["Peptization","Dialysis","Mechanical Dispersion","Oxidation"],a:1},
+{s:"Chemistry",q:"The compound that does not act as a Lewis acid.",o:["BaCl₂","AlCl₃","BF₃","BeCl₂"],a:0},
+{s:"Chemistry",q:"The pH value of 0.001 M NaOH solution is",o:["3","9","7","11"],a:3},
+{s:"Chemistry",q:"The solvent not used for green synthesis is",o:["Aniline","Room temperature ionic liquids","Bio solvents","Supercritical fluids"],a:0},
+{s:"Chemistry",q:"Which of these days is celebrated in the form of World Environment Day all around the world?",o:["July 5th","June 10th","October 20th","June 5th"],a:3},
+{s:"Chemistry",q:"Extra pure water can be obtained by using",o:["Lime – Soda process","Permutit process","Ion-exchange process","Electrodialysis process"],a:3},
+{s:"Chemistry",q:"Sterilization of water can be done by using",o:["Ozone","Oxygen","Caustic Potash","Hydrogen peroxide"],a:0},
+{s:"Chemistry",q:"The product formed at cathode when Pt electrodes are used in the electrolysis of Fused NaCl.",o:["Cl₂","NaOH","HCl","Na"],a:3},
+{s:"Chemistry",q:"What is the electrochemical equivalent (z) of copper, when 0.3950 g of copper is deposited by a current of 0.5 amperes in 40 minutes.",o:["0.0003292 g","0.003950 g","0.0001646 g","0.00164 g"],a:0},
+{s:"Chemistry",q:"Extraction of zinc from zinc blende is achieved by",o:["Electrolytic reduction","Roasting followed by reduction with carbon","Roasting followed by reduction with another metal","Roasting followed by self-reduction"],a:1},
+{s:"Chemistry",q:"In blast furnace iron oxide is reduced by",o:["Silica","Carbon monoxide","Carbon","Limestone"],a:1},
+{s:"Chemistry",q:"During electrochemical corrosion in acidic environment",o:["Oxygen evolution occurs","Hydrogen evolution takes place","Oxygen absorption occurs","Hydrogen absorption takes place"],a:1},
+{s:"Chemistry",q:"The process of cementation of iron with zinc powder is known as",o:["Sheradising","Galvanizing","Zincing","Tinning"],a:0},
+{s:"Chemistry",q:"Bakelite is manufactured by the reaction between",o:["Urea and formaldehyde","Phthalic acid and ethylene glycol","Ethylene glycol and formaldehyde","Phenol and formaldehyde"],a:3},
+{s:"Chemistry",q:"Which of the following is an elastomer",o:["Polystyrene","Buna-S rubber","Melamine","Dacron"],a:1},
+{s:"Chemistry",q:"A good fuel has",o:["Moderate ignition temperature and high calorific value","High ignition temperature and high calorific value","Low ignition temperature and low calorific value","Low ignition temperature and high calorific value"],a:0},
+{s:"Chemistry",q:"The best example of splash lubrication is",o:["Wick feed lubricator","Ring lubricator","Grease Gun","Pump lubricator"],a:1},
+{s:"Chemistry",q:"Saturated calomel electrode standard reduction potential value in Volts is",o:["0","0.6990","−0.242","+0.242"],a:3},
+{s:"Chemistry",q:"For the following cell reaction, E° for the cell is Zn(s) + 2Fe³⁺(aq) ⇌ 2Fe²⁺(aq) + Zn²⁺(aq) (Standard Reduction potentials of Zn and Fe electrodes are −0.76V and +0.77V respectively)",o:["1.53 V","0.01 V","−1.53 V","0.78 V"],a:0},
+{s:"Chemistry",q:"The gas that is responsible for Bhopal gas tragedy is",o:["Methyl isocyanate","Methyl chloroformate","Methyl isopropyl ether","Methyl isobutyrate"],a:0},
+{s:"Chemistry",q:"Which of the following gases is largely responsible for acid – rain?",o:["CO and CO₂","NO and NO₂","SO₂ and NO₂","N₂ and O₂"],a:2},
+
+// ── CSE (Q101-200) ───────────────────────────────
+{s:"CSE",q:"The decimal equivalent of octal number (128.24)₈ is ____",o:["80.3125","88.3125","40.15625","88.20"],a:1},
+{s:"CSE",q:"The binary equivalent of a BCD number 00101001.01110101 is",o:["11101.11","11010.11","11101.10100","11010.10100"],a:0},
+{s:"CSE",q:"The logical gate that gives an output of logic level '1' whenever two inputs are equal is",o:["AND","OR","Ex-OR","Ex-NOR"],a:3},
+{s:"CSE",q:"Convert A.B + Ā.B̄ into equivalent Product of Sums expression",o:["(A+B).(Ā+B̄)","(Ā+B̄).(Ā+B)","(A+B̄).(Ā+B)","(A+B).(A+B̄)"],a:2},
+{s:"CSE",q:"A digital circuit whose output depends not only on the present input but also on sequence of past inputs is a",o:["Decoder","Multiplexer","Sequential Circuit","Combinational Circuit"],a:3},
+{s:"CSE",q:"The number of distinct Boolean expressions for 4 variables is",o:["16","256","1024","65536"],a:3},
+{s:"CSE",q:"An SR flip flop is converted to _____ flip flop by inserting an inverter between S&R by assigning a single input",o:["Master Slave","T","JK","D"],a:3},
+{s:"CSE",q:"A Combinational circuit that converts the binary information from 2ⁿ inputs to n outputs is",o:["Decoder","Multiplexer","Half Adder","Encoder"],a:3},
+{s:"CSE",q:"The address lines required 16 kilobyte memory chip is",o:["4","16","14","13"],a:2},
+{s:"CSE",q:"If A, B, C, D, E, F represents variables of a Boolean expression and mᵢ is the iᵗʰ min term, then the value of m₄₇ is",o:["A.B̄.C.D.E.F","A+B̄+C+D+E+F","Ā.B.C̄.D̄.Ē.F̄","Ā+B+C̄+D̄+Ē+F̄"],a:0},
+{s:"CSE",q:"A RAM chip has a capacity of 1024 words of 16 bits each (1K × 16). The number of 2 × 4 decoders with enable line needed to construct a 16K × 16RAM from 1K × 16 RAM is",o:["4","5","3","6"],a:1},
+{s:"CSE",q:"The amount of ROM needed to implement a 4 bit multiplier is",o:["2K bits","4K bits","8K bits","1K bits"],a:0},
+{s:"CSE",q:"A computer has 128 KB 8-way set associative write back data cache with block size of 32 bytes. The processor sends 32 bit addresses to the cache controller. The number of bits in the tag field of an address is:",o:["16","20","18","14"],a:2},
+{s:"CSE",q:"Consider a hypothetical processor with an instruction of type LW R1, 20(R2). This operation reads from a memory location and writes it into register R1. The effective address of the memory location of the operand is obtained by addition of constant 20 to address contained in register R2. Which of the following best reflects the addressing mode of this instruction?",o:["Register Addressing","Immediate Addressing","Base Indexed Addressing","Register Indirect Scaled Addressing"],a:2},
+{s:"CSE",q:"Consider the expression (a-(b+f))+(e-(c+d)) where a, b, c, d, e are data items stored in memory locations. Consider a machine with load-store architecture in which memory can be accessed only through load and store instructions. The binary operations in this expression can be evaluated by the machine only when the operands are in registers. The instructions produce the result only in a register. If no immediate results can be stored in memory, what is the minimum number of registers needed to evaluate this expression.",o:["5","2","8","3"],a:3},
+{s:"CSE",q:"According to Flynn's classification, which architecture is of only theoretical interest and no practical system has been developed based on it?",o:["SSID","SIMD","MISD","MIMD"],a:2},
+{s:"CSE",q:"Which of the following data transfer mode takes relatively more time",o:["DMA","Interrupt initiated I/O","Programmed I/O","DMA and Interrupt initiated I/O"],a:2},
+{s:"CSE",q:"A processor has 100 different instructions and 32 general purpose registers. A 32-bit instruction word has an op-code, two register operands and an immediate operand. The number of bits available for immediate operand is",o:["15","14","16","17"],a:0},
+{s:"CSE",q:"Which speed up could be achieved according to Amdahl's law for infinite number of processes, if 85% of the program is parallel.",o:["20/3","10/3","3/10","3/20"],a:0},
+{s:"CSE",q:"Which of the following is false statement",o:["In synchronous serial transfer of data the two units operate with different clock","The isolated I/O method isolates memory and I/O addresses so that memory address range is not affected by interface address assignment","In memory-mapped I/O the CPU can manipulate I/O data residing in interface registers that are not used to manipulate memory words","In synchronous serial transfer of data the two units operate with the same clock"],a:0},
+{s:"CSE",q:"Which of the following is NOT a unary operator in C language.",o:["++","--","sizeof","/"],a:3},
+{s:"CSE",q:"The result of the expression (10/3) * 3 + 5 % 3",o:["11","10","8","1"],a:0},
+{s:"CSE",q:"The 'union' holds",o:["One object at a time","Multiple objects at a time","Static values","Similar to Structure"],a:0},
+{s:"CSE",q:"This program prints 31, what is the statement to be written at the 'MISSING PART' part of the program.\n#include<stdio.h>\nint main()\n{\n  int a=15,b=16,c;\n  int *p1,*p2,*p3,***p4;\n  p1=&a; p2=&b; p3=&c;\n  MISSING PART\n  printf(\"%d\",c);\n  return 0;\n}",o:["*p3=p1+p2;","*p3=*p1+*p2;","p3=*p1+*p2;","p3=p1+p2;"],a:1},
+{s:"CSE",q:"What is the output of the following program\n#include<stdio.h>\nint main()\n{\n  int a=100;\n  if(a>10) printf(\"NIT Delhi \");\n  else printf(\"NIT Warangal\");\n  if(a>20) printf(\"NIT Trichy \");\n  else printf(\"IIT Hyderabad \");\n  return 0;\n}",o:["NIT Delhi NIT Trichy","IIT Hyderabad","NIT Delhi","NIT Trichy IIT Hyderabad"],a:0},
+{s:"CSE",q:"Which of the looping is known as exit controlled loop",o:["for","while","do-while","if"],a:2},
+{s:"CSE",q:"Consider the following pseudo code:\nAlgorithm Display(n)\nif n=1\n  print 'Data Structures' (3 times)\n  return\nelse\n  print 'Data Structures'\n  Display(n-1)\n\nIf 200 is provided as input to the Display() algorithm then Data Structures is printed _____ times.",o:["199","200","201","202"],a:3},
+{s:"CSE",q:"Consider the following statements:\nI. Stack is used to perform recursion.\nII. If insertion and deletion operations are performed at the front of linked list then the linked list acts as a stack.\nIII. If T is a rooted binary tree with no right subtree of root i.e., root has only left subtree. Then Pre-order traversal of T is same as its in-order traversal.\nNumber of correct statements among the three statements given above is",o:["0","1","2","3"],a:2},
+{s:"CSE",q:"Which one of the following sorted pairs can be efficiently merged using merge sort?",o:["(10,20,30,40,50,60,70,80) and (16,26,36,46,56,66,76,86)","(10,30,36,40,46,50,56,60) and (16,20,26,66,70,76,80,86)","(10,16,20,26,30,36,40,60) and (46,50,56,66,70,76,80,86)","(10,16,20,26,30,36,40,46) and (50,56,60,66,70,76,80,86)"],a:3},
+{s:"CSE",q:"Let A be an array with n distinct elements arranged in decreasing order. Which one of the following statements is FALSE?",o:["Merge sort sorts A in ascending order more efficiently than insertion sort","Merge sort sorts A in ascending order more efficiently than selection sort","Insertion sort sorts A in ascending order more efficiently than selection sort","Merge sort sorts A in ascending order more efficiently than quick sort"],a:2},
+{s:"CSE",q:"Let S be an empty stack. If the following operations PUSH(S,10); PUSH(S,20); PUSH(S,30); POP(S); PUSH(S,15); PUSH(S,25) and POP(S) are performed in sequence on S then the sum of top two elements of S is",o:["50","35","45","40"],a:1},
+{s:"CSE",q:"Let A[1..15]=(10,15,20,25,30,35,40,45,50,55,60,65,70,75,80). Which one of the following statements is FALSE about searching in array A?",o:["Linear search requires three comparisons to find element 20","Binary search requires less comparisons than linear search to find 45","Binary search requires two comparisons to find element 15","Binary search requires less comparisons than linear search to find 80"],a:2},
+{s:"CSE",q:"In C++, what does 'this' pointer represent within a class member function",o:["It points to the base class object.","It points to the derived class object.","It points to the current object instance within the member function.","It points to the static class members."],a:2},
+{s:"CSE",q:"Which inheritance types in C++ allow a class to inherit from more than one base class?",o:["Single Inheritance","Multiple Inheritance","Multilevel Inheritance","Hierarchical Inheritance"],a:1},
+{s:"CSE",q:"In C++, what is the primary purpose of a destructor within a class?",o:["To initialize an object.","To allocate memory for an object.","To perform cleanup tasks before an object is destroyed.","To overload operators for a class."],a:2},
+{s:"CSE",q:"The concept of function overloading in C++ is that",o:["It involves redefining the behavior of built-in functions.","It allows providing multiple definitions of a function with the same name but different parameters.","It restricts access to certain member functions.","It facilitates access to private members of a class"],a:1},
+{s:"CSE",q:"What does the friend keyword indicate in C++?",o:["It indicates a function or class that can access private and protected members of another class.","It indicates a function or class that cannot access private and protected members of another class.","It indicates a virtual function.","It indicates an inline function."],a:0},
+{s:"CSE",q:"What role do virtual functions play in C++?",o:["They provide multiple definitions of a function with the same name but different parameters.","They prevent the inheritance of a class.","They enable runtime polymorphism and dynamic binding.","They access static members of a class"],a:2},
+{s:"CSE",q:"What is the purpose of inline functions in C++.",o:["They reduce code duplication and improve performance by inserting function code directly at the call site.","They provide multiple definitions of a function with the same name but different parameters.","They restrict access to certain member functions.","They enable runtime polymorphism."],a:0},
+{s:"CSE",q:"How do templates contribute to C++ programming?",o:["They provide a mechanism for code reuse by defining generic functions or classes that can work with any data type.","They provide multiple definitions of a function with the same name but different parameters.","They restrict access to certain member functions.","They enable runtime polymorphism."],a:0},
+{s:"CSE",q:"Which inheritance type involves creating a class hierarchy where each derived class inherits from only one base class?",o:["Single Inheritance","Multiple Inheritance","Multilevel Inheritance","Hierarchical Inheritance"],a:0},
+{s:"CSE",q:"What purpose do class templates serve in C++?",o:["They provide a mechanism for code reuse by defining generic classes that can work with any data type.","They provide multiple definitions of a function with the same name but different parameters.","They enable runtime polymorphism.","They restrict access to certain member functions."],a:0},
+{s:"CSE",q:"One of the following statement is false regarding data dictionary",o:["Data dictionary is a file that contains meta data","Data dictionary is normally maintained by the database administrator","The characteristics of the data is stored in data dictionary","Data elements in the database can be modified by changing the data dictionary"],a:3},
+{s:"CSE",q:"Consider two tables: A & B, the mapping cardinality from A to B is '1-to-many'. In which table should the corresponding foreign key be placed?",o:["Foreign key is needed only in table-A","Foreign key is needed only in table-B","Foreign key is needed in both the tables","Foreign key is not needed in any table."],a:1},
+{s:"CSE",q:"If two relations R & S are joined, then the non-matching tuples of both R & S are ignored in",o:["Left outer join","Right outer join","Full outer join","Inner join"],a:3},
+{s:"CSE",q:"The normalization of 1NF relation to 2NF involves",o:["Removal of partial dependencies","Removal of full dependencies","Removal of transitive dependencies","Removal of multi-valued dependencies"],a:0},
+{s:"CSE",q:"Once a transaction commits, its results have to be preserved irrespective of subsequent failures. This refers to one of the following properties of a transaction",o:["Atomicity","Consistency","Isolation","Durability"],a:3},
+{s:"CSE",q:"For a weak entity set to be meaningful, it must be associated with another entity set called",o:["Identifying set","Owner set","Neighbor set","Strong entity set"],a:0},
+{s:"CSE",q:"Which of the following constructs will undo all statements up to commit",o:["Commit","Flashback","Abort","Rollback"],a:3},
+{s:"CSE",q:"The constraint that specifies the number of entities to which another entity can be associated via a relationship set in E-R model is referred as",o:["Mapping cardinality","Entity integrity","Assertion","Domain integrity"],a:0},
+{s:"CSE",q:"The ability to modify scheme definition at one level without affecting schema of that definition in the next higher level's is called",o:["Normalization","Atomicity","Data Manipulation","Data independence"],a:3},
+{s:"CSE",q:"The block of statements that are executed automatically whenever an event occurs is a",o:["Function","Procedure","Cursor","Trigger"],a:3},
+{s:"CSE",q:"IP Protocols transport the data in",o:["Frames","Packets","Datagrams","Protocol Data Units (PDU)"],a:2},
+{s:"CSE",q:"Which address is necessary for universal communications of independent physical networks?",o:["Physical Address","Application Address","Port Address","Logical Address"],a:3},
+{s:"CSE",q:"Suppose, An Ethernet frame has a minimum length of 512 bits or 64 bytes and it also has a header and a trailer length of 18 bytes (6 bytes of source address, 6 bytes of destination address, 2 bytes of length or type, and 4 bytes of CRC), What is the minimum length of data required by the upper layer (Network Layer)",o:["64 Bytes","46 Bytes","18 Bytes","24 Bytes"],a:1},
+{s:"CSE",q:"Define which type of address: 4A:30:10:21:10:1A",o:["Unicast","Multicast","Broadcast","Anycast"],a:0},
+{s:"CSE",q:"Devices are connected through a central device",o:["Mesh Topology","Star Topology","Tree Topology","Ring Topology"],a:1},
+{s:"CSE",q:"Which of the following connecting devices that has access to station addresses and can forward or filter a packet in a network",o:["Hub","Repeater","Switch","Bridge"],a:3},
+{s:"CSE",q:"In the standard Ethernet with 10-Mbps data rate and maximum propagation time of 25.6 μs, what is the minimum size of the frame?",o:["32 Bytes","64 Bytes","16 Bytes","128 Bytes"],a:1},
+{s:"CSE",q:"An IPv4 protocol, that defines addresses has an address space. What is the address space required to accommodate the total number of addresses if a protocol uses 'b' bits to define an address,",o:["2b","2^b","b/2","b"],a:1},
+{s:"CSE",q:"What is the error in the IPv4 addresses 75.45.301.14",o:["There should be no leading zeroes in dotted-decimal notation","It is not having more than 4 bytes in an IPv4 address","It is outside of the range","A mixture of binary notation and dotted-decimal notation is not allowed"],a:2},
+{s:"CSE",q:"Which class the given IPv4 address: 11000001 10000011 00011011 11111111",o:["Class A Address","Class B Address","Class C Address","Class E Address"],a:2},
+{s:"CSE",q:"A Process Control Block (PCB) does not contain the following",o:["Code","Stack","Bootstrap Program","Data"],a:2},
+{s:"CSE",q:"An IPC facility provides the following two basic operations",o:["Write and delete message","Delete and receive message","Send and delete message","Receive and send message"],a:3},
+{s:"CSE",q:"The Remote Method Invocation (RMI) allows",o:["Process to invoke memory on remote object","Thread to invoke a method on remote object","Thread to invoke a memory on remote object","Process to invoke a method on remote object"],a:1},
+{s:"CSE",q:"Round robin scheduling algorithm in a time shared system",o:["Uses very large time slices & converts it into first come first serve scheduling algorithm","Uses small time slices & converts it into first come first serve scheduling algorithm","Uses extremely small time slices to increase the performance","Uses very small time slices & converts it into shortest job first algorithm."],a:1},
+{s:"CSE",q:"Orders are processed in the sequence they arrive if _____ rule sequences the jobs",o:["Earliest due date","Slack time remaining","First come first served","Critical ratio"],a:2},
+{s:"CSE",q:"What is the ready state of a process?",o:["When the process is scheduled to run after some execution","When the process is unable to run until some task has been completed","When the process is using the CPU","When the process completes its execution"],a:0},
+{s:"CSE",q:"In time sharing operating systems, when the time slot given to a process is completed, then the process goes from running state to",o:["Blocked state","Ready state","Suspended state","Terminated state"],a:1},
+{s:"CSE",q:"If a process is executing in its critical section, then no other processes can be executing in the critical section. This condition is called",o:["Mutual Exclusion","Critical Exclusion","Synchronous Exclusion","Asynchronous Exclusion"],a:0},
+{s:"CSE",q:"Memory management technique in which the system stores and retrieves data from secondary storage for use in main memory is called",o:["Fragmentation","Paging","Mapping","Scaling"],a:1},
+{s:"CSE",q:"Compaction is a technique to overcome",o:["Internal fragmentation","External fragmentation","Fatal error","Deadlock"],a:1},
+{s:"CSE",q:"One of the following is not a feature of java",o:["Object-oriented","Platform independent","Architecure neutral","Use of pointers"],a:3},
+{s:"CSE",q:"Evaluate the following Java expression if a=3, b=5 and c=10\n++c + b − b + c + a++",o:["25","19","23","24"],a:0},
+{s:"CSE",q:"_____ method in Java is used to specify actions that must be performed before an object is destroyed",o:["finalizer()","fianlized()","finalizing()","finalize()"],a:3},
+{s:"CSE",q:"In Java, a _____ class variable can reference a _____ class object",o:["Sub, Super","Super, Sub","Super, Super","Sub, Sub"],a:1},
+{s:"CSE",q:"The keyword that is used to prevent overriding in Java is",o:["super","abstract","final","sub"],a:2},
+{s:"CSE",q:"The exception that is used in Java if assignment to an array element is of incompatible type",o:["Arithmetic","Illegal Array","ArrayIndex Out Of Bounds","ArrayStore"],a:3},
+{s:"CSE",q:"_____ method in multithreading returns True if the thread upon which it is called is still running. Otherwise returns false",o:["isAlive()","join()","sleep()","stop()"],a:0},
+{s:"CSE",q:"Which of the following statements is true about Applets?",o:["Applets need main() method","Applets must run on under a java-compatible browser","Applets will not run under a applet viewer","Applets does not use the interface provided by the AWT or Swing"],a:1},
+{s:"CSE",q:"_____ is superclass of all events",o:["ActionEvent","AWTEvent","EventObject","AdjustmentEvent"],a:2},
+{s:"CSE",q:"One of the methods is not central to the life cycle of a servlet",o:["init()","service()","destroy()","delete()"],a:3},
+{s:"CSE",q:"In Python, the operator '//' is used for",o:["Line comments","Block comment","Floor division","Ceil division"],a:2},
+{s:"CSE",q:"Which of the operator is considered as bit wise XOR operator",o:[">>","<<","&","^"],a:3},
+{s:"CSE",q:"In Python, which of the following is not a container data type.",o:["List","Tuples","Directories","Dictionaries"],a:2},
+{s:"CSE",q:"In Python, Functions that are anonymous un-named function are known as---",o:["User-defined functions","Built-in functions","Lambda functions","Recursion functions"],a:2},
+{s:"CSE",q:"Which of the following is not considered as a token in Python",o:["Identifiers","Keywords","Operators","Comments"],a:3},
+{s:"CSE",q:"In Python, What is the minimum number of arguments required to draw a rectangle on canvas",o:["4","6","5","2"],a:0},
+{s:"CSE",q:"In python, while using regular expression the '?' symbol is used to represent----",o:["Zero or one occurrences","Starts with","Ends with","Zero or more occurrences"],a:0},
+{s:"CSE",q:"In Python, what is the name of the function which acts as a constructor",o:["-- init -- ()","const","construct","constructor"],a:0},
+{s:"CSE",q:"Which of the following command is used to remove all rows from the table",o:["Kill","Truncate","Delete","Drop"],a:3},
+{s:"CSE",q:"What is the use of 'a' mode in file handling in Python",o:["Read","Write","Append","Alias"],a:2},
+{s:"CSE",q:"<?php $user = array('Web', 'Programming', 'Subject');\nfor ($x=0; $x < count($user); $x++)\n{ if ($user[$x] == 'HTML') continue;\nprintf ($user[$x]); printf(' '); } ?>",o:["Web Programming","Web Programming Subject","Web Programming Subject HTML","Web HTML"],a:1},
+{s:"CSE",q:"Which of the following attribute of the font tag is used to choose the type of font in HTML?",o:["FONT","TYPE","TEXT","FACE"],a:3},
+{s:"CSE",q:"How many number parameters does the mysqli() function accept to connect to the database from the PHP?",o:["Four","Three","Two","One"],a:0},
+{s:"CSE",q:"What will be the output of the following PHP code?\n<?php $a = 2; $b = 2; echo ($a === $b); ?>",o:["2==2","1","a==b","ERROR"],a:1},
+{s:"CSE",q:"Which of the following function is used to start the session in PHP?",o:["begin_session()","session_start()","session_begin()","start_session()"],a:1},
+{s:"CSE",q:"The XML documents must contain one ____ element that is the parent of all other elements",o:["head","body","main","root"],a:3},
+{s:"CSE",q:"Which of the following adds a plain color to the background of a web page?",o:['<body color="#FF0000">','<body bgcolor="#12345678">','<body color="#000,000">','<body bgcolor="#FF0000">'],a:3},
+{s:"CSE",q:"Which of the following method is the method of the window object in JavaScript?",o:["setTimeout()","setTimein()","setTime()","setTimeoutForWindow()"],a:0},
+];
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let currentQ = 0;
+let answers = new Array(200).fill(-1);
+let timerInterval;
+let timeLeft = 180 * 60;
+let testStarted = false;
+let activeSection = 'All';
+const SECTIONS = ['Mathematics','Physics','Chemistry','CSE'];
+const SEC_RANGES = {Mathematics:[0,49],Physics:[50,74],Chemistry:[75,99],CSE:[100,199]};
+
+// ═══════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════
+function startTest() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('test-screen').style.display = 'block';
+  testStarted = true;
+  buildSectionTabs();
+  buildGrid();
+  renderQuestion(0);
+  startTimer();
+}
+
+function startTimer() {
+  const el = document.getElementById('timer');
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const h = Math.floor(timeLeft/3600);
+    const m = Math.floor((timeLeft%3600)/60);
+    const s = timeLeft%60;
+    el.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    el.className = timeLeft <= 300 ? 'danger' : timeLeft <= 600 ? 'warn' : '';
+    if (timeLeft <= 0) { clearInterval(timerInterval); showResult(); }
+  }, 1000);
+}
+function pad(n){ return String(n).padStart(2,'0'); }
+
+// ═══════════════════════════════════════════════════
+//  SECTION TABS
+// ═══════════════════════════════════════════════════
+function buildSectionTabs() {
+  const c = document.getElementById('sec-tabs');
+  c.innerHTML = '';
+  ['All',...SECTIONS].forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sec-tab' + (s === 'All' ? ' active' : '');
+    b.textContent = s;
+    b.onclick = () => jumpToSection(s, b);
+    c.appendChild(b);
+  });
+}
+function jumpToSection(sec, btn) {
+  document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (sec === 'All') { renderQuestion(currentQ); return; }
+  const [start] = SEC_RANGES[sec];
+  renderQuestion(start);
+}
+
+// ═══════════════════════════════════════════════════
+//  GRID
+// ═══════════════════════════════════════════════════
+function buildGrid() {
+  const c = document.getElementById('grid-btns');
+  c.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'grid-btn' + (i === currentQ ? ' current' : '') + (answers[i] !== -1 ? ' answered' : '');
+    b.textContent = i + 1;
+    b.onclick = () => renderQuestion(i);
+    c.appendChild(b);
+  });
+}
+function updateGrid() {
+  const btns = document.querySelectorAll('.grid-btn');
+  btns.forEach((b, i) => {
+    b.className = 'grid-btn' + (i === currentQ ? ' current' : '') + (answers[i] !== -1 ? ' answered' : '');
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER QUESTION
+// ═══════════════════════════════════════════════════
+function renderQuestion(idx) {
+  currentQ = idx;
+  const q = QUESTIONS[idx];
+  document.getElementById('q-num').textContent = `Question ${idx+1} of 200`;
+  document.getElementById('q-badge').textContent = q.s;
+  document.getElementById('q-text').innerHTML = q.q.replace(/\n/g,'<br>');
+
+  const optsEl = document.getElementById('q-options');
+  optsEl.innerHTML = '';
+  const labels = ['A','B','C','D'];
+  q.o.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option' + (answers[idx] === i ? ' selected' : '');
+    div.innerHTML = `<div class="opt-circle">${labels[i]}</div><div class="opt-text">${opt}</div>`;
+    div.onclick = () => selectOption(idx, i);
+    optsEl.appendChild(div);
+  });
+
+  document.getElementById('prev-btn').disabled = idx === 0;
+  document.getElementById('next-btn').disabled = idx === 199;
+  updateGrid();
+  updateProgress();
+}
+
+function selectOption(qIdx, optIdx) {
+  answers[qIdx] = answers[qIdx] === optIdx ? -1 : optIdx;
+  renderQuestion(qIdx);
+}
+
+function navigate(dir) {
+  const next = currentQ + dir;
+  if (next >= 0 && next < 200) renderQuestion(next);
+}
+
+function updateProgress() {
+  const answered = answers.filter(a => a !== -1).length;
+  const pct = (answered/200)*100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${answered} / 200 answered`;
+}
+
+// ═══════════════════════════════════════════════════
+//  SUBMIT
+// ═══════════════════════════════════════════════════
+function confirmSubmit() {
+  const answered = answers.filter(a => a !== -1).length;
+  const skipped = 200 - answered;
+  if (confirm(`You have answered ${answered} questions and skipped ${skipped}. Are you sure you want to submit?`)) {
+    clearInterval(timerInterval);
+    showResult();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  RESULT
+// ═══════════════════════════════════════════════════
+function showResult() {
+  document.getElementById('test-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  let correct = 0, wrong = 0, skipped = 0;
+  QUESTIONS.forEach((q, i) => {
+    if (answers[i] === -1) skipped++;
+    else if (answers[i] === q.a) correct++;
+    else wrong++;
+  });
+
+  const score = correct;
+  const pct = Math.round((correct/200)*100);
+
+  const ring = document.getElementById('score-ring');
+  ring.style.setProperty('--pct', pct);
+  document.getElementById('score-pct-txt').textContent = pct + '%';
+
+  document.getElementById('result-title').textContent =
+    pct >= 80 ? '🏆 Excellent Performance!' :
+    pct >= 60 ? '👍 Good Performance!' :
+    pct >= 40 ? '📚 Keep Practising' : '💪 Keep Going!';
+  document.getElementById('result-sub').textContent =
+    `You scored ${score}/200 marks. Total time: 3 hours.`;
+
+  document.getElementById('result-stats').innerHTML = `
+    <div class="r-stat correct"><div class="val">${correct}</div><div class="lbl">Correct</div></div>
+    <div class="r-stat wrong"><div class="val">${wrong}</div><div class="lbl">Wrong</div></div>
+    <div class="r-stat skip"><div class="val">${skipped}</div><div class="lbl">Skipped</div></div>
+    <div class="r-stat"><div class="val" style="color:var(--accent)">${score}</div><div class="lbl">Score</div></div>
+    <div class="r-stat"><div class="val" style="color:var(--accent2)">${pct}%</div><div class="lbl">Accuracy</div></div>
+  `;
+
+  renderReview('all');
+}
+
+function renderReview(filter) {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const ua = answers[i];
+    let status = ua === -1 ? 'skip' : ua === q.a ? 'correct' : 'wrong';
+    if (filter !== 'all' && filter !== status) return;
+    const div = document.createElement('div');
+    div.className = `r-item ${status}`;
+    const badge = {correct:'✓ Correct',wrong:'✗ Wrong',skip:'— Skipped'}[status];
+    const labels = ['A','B','C','D'];
+    let ansHtml = `<span>Correct: <span class="correct-ans">${labels[q.a]}. ${q.o[q.a]}</span></span>`;
+    if (status === 'wrong') ansHtml += `<span>Your Answer: <span class="your-ans">${labels[ua]}. ${q.o[ua]}</span></span>`;
+    if (status === 'skip') ansHtml += `<span class="your-ans">Not Attempted</span>`;
+
+    div.innerHTML = `
+      <div class="r-item-header">
+        <span class="r-item-num">Q${i+1} • ${q.s}</span>
+        <span class="r-badge ${status}">${badge}</span>
+      </div>
+      <div class="r-item-q">${q.q.replace(/\n/g,'<br>')}</div>
+      <div class="r-ans">${ansHtml}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function filterReview(filter, btn) {
+  document.querySelectorAll('.f-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderReview(filter);
+}
+</script>
+</body>
+</html>
